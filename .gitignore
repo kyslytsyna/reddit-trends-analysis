@@ -1,0 +1,30 @@
+# ----- Python bytecode / cache -----
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+
+# ----- Jupyter -----
+.ipynb_checkpoints/
+
+# ----- Virtual-environment -----
+venv/
+# if you ever use Conda:
+.env/conda-meta/
+.conda/
+
+# ----- Data & outputs -----
+*.sqlite
+*.db
+*.parquet
+*.h5
+reddit_trends_project/**/*.csv
+reddit_trends_project/**/*.txt
+
+# ----- Secrets -----
+.env
+
+# ----- OS & editor cruft -----
+.DS_Store
+Thumbs.db
+.vscode/
