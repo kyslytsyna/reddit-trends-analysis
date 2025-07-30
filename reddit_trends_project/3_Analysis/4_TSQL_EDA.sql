@@ -1,6 +1,3 @@
-CREATE DATABASE reddit_trends_project;
-GO
-
 /* ============================================================
     Project : Reddit Trends – SQL Analysis
     Database: reddit_trends_project
@@ -8,6 +5,16 @@ GO
     Date    : 2025-07-22
     Desc    : Reproduce EDA insights using T-SQL
 =============================================================== */
+IF DB_ID('reddit_trends_project') IS NULL
+BEGIN
+    PRINT 'Database not found. Creating…';
+    CREATE DATABASE reddit_trends_project;
+END
+ELSE
+BEGIN
+    PRINT 'Database already exists. Skipping CREATE DATABASE.';
+END
+GO
 
 USE reddit_trends_project;
 GO
@@ -15,15 +22,15 @@ GO
 /* ============================================================
    00. CLEANUP (run if re-importing)
 =============================================================== */
-IF OBJECT_ID('dbo.STG_Reddit', 'U') IS NOT NULL DROP TABLE dbo.STG_Reddit;
-IF OBJECT_ID('dbo.RAW_Reddit', 'U') IS NOT NULL DROP TABLE dbo.RAW_Reddit;
-IF OBJECT_ID('dbo.WRK_Reddit', 'U') IS NOT NULL DROP TABLE dbo.WRK_Reddit;
-IF OBJECT_ID('dbo.TOKENS_Reddit', 'U') IS NOT NULL DROP TABLE dbo.TOKENS_Reddit;
-
 IF OBJECT_ID('dbo.VW_Reddit_Base', 'V') IS NOT NULL DROP VIEW dbo.VW_Reddit_Base;
 IF OBJECT_ID('dbo.VW_Reddit_MediansByHour', 'V') IS NOT NULL DROP VIEW dbo.VW_Reddit_MediansByHour;
 
 IF OBJECT_ID('dbo.RES_TopWords', 'U') IS NOT NULL DROP TABLE dbo.RES_TopWords;
+
+IF OBJECT_ID('dbo.TOKENS_Reddit', 'U') IS NOT NULL DROP TABLE dbo.TOKENS_Reddit;
+IF OBJECT_ID('dbo.WRK_Reddit', 'U') IS NOT NULL DROP TABLE dbo.WRK_Reddit;
+IF OBJECT_ID('dbo.RAW_Reddit', 'U') IS NOT NULL DROP TABLE dbo.RAW_Reddit;
+IF OBJECT_ID('dbo.STG_Reddit', 'U') IS NOT NULL DROP TABLE dbo.STG_Reddit;
 GO
 
 /* ============================================================
@@ -57,10 +64,15 @@ WITH (
 );
 GO
 
-/* Quick check */
+/* TODO:
+   1. Inspect /var/opt/mssql/data/bulk_err_no_title.log and
+      the companion .Error.txt file for rejected rows.
+   2. Fix data or apply cleansing logic if necessary.
+*/
+/* Quick check 
     SELECT TOP 10 * FROM dbo.STG_Reddit;
     SELECT COUNT(*) AS loaded_rows FROM dbo.STG_Reddit;
-
+*/
 /* ============================================================
    03. RAW TABLE
 =============================================================== */
@@ -98,10 +110,10 @@ SELECT
 FROM dbo.STG_Reddit;
 GO
 
-/* Quick check */
+/* Quick check 
 SELECT COUNT(*) AS typed_rows FROM dbo.RAW_Reddit;
 SELECT TOP 5 * FROM dbo.RAW_Reddit;
-
+*/
 /* ============================================================
    05. WRK TABLE – derive extra fields (year, month, hour_utc)
 =============================================================== */
@@ -149,13 +161,18 @@ SELECT
 FROM dbo.RAW_Reddit;
 GO
 
-/* Quick check */
+/* Quick check
 SELECT TOP 5 * FROM dbo.WRK_Reddit ORDER BY RowId;
 SELECT COUNT(*) AS wrk_rows FROM dbo.WRK_Reddit;
+*/
 
 /* ============================================================
    06. TOKENS TABLE
 =============================================================== */
+/* NOTE: The stop‑word removal and text‑cleaning steps are performed up‑front in the
+   Python ETL script.  
+   Therefore the tokens loaded here are already lower‑cased, de‑accented and stripped
+   of stop‑words. No additional filtering is required in SQL.*/
 CREATE TABLE dbo.TOKENS_Reddit
 (
     TokenId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
@@ -181,10 +198,11 @@ CROSS APPLY OPENJSON(r.tokens_json) AS j
 WHERE   r.tokens_json IS NOT NULL;
 GO
 
-/* Quick check */
+/* Quick check
 SELECT TOP 100 * FROM dbo.TOKENS_Reddit;
 SELECT COUNT(*) AS total_tokens FROM dbo.TOKENS_Reddit;
 GO
+ */
 
 /* ============================================================
    07. BASE VIEW – convenient subset
