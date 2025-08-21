@@ -31,3 +31,19 @@ update-checker==0.18.0
 urllib3==2.5.0
 websocket-client==1.8.0
 wordcloud==1.9.4
+
+# --- Core data wrangling / plots ---
+pandas==2.3.1
+numpy==2.3.1
+matplotlib==3.10.3
+seaborn==0.13.2
+
+# --- Text & NLP helpers used in EDA ---
+textblob==0.19.0
+wordcloud==1.9.4
+pillow==11.3.0
+
+# --- Reddit API + env handling (data collection script) ---
+praw==7.8.1
+python-dotenv==0.21.0
+
